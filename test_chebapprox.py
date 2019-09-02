@@ -74,6 +74,21 @@ class TestChebApproximant(unittest.TestCase):
         approx = cheb(x)
         self.assertTrue(np.allclose(true, approx, **TOLS))
 
+    def test_call_returns_correct_shape_for_3d_function(self):
+        f3d = lambda t: np.transpose([(np.cos(ti), np.sin(ti), 0) for ti in t])
+        cheb3d = ChebyshevApproximant(f3d, (0, 1), degree=3)
+        t = np.linspace(0, 1, 101)
+        true = f3d(t)
+        approx = cheb3d(t)
+        self.assertEqual(true.shape, approx.shape)
+
+    def test_call_accurately_approximates_on_3D_function(self):
+        f3d = lambda t: np.transpose([(np.cos(ti), np.sin(ti), 0) for ti in t])
+        cheb3d = ChebyshevApproximant(f3d, (0, 1), degree=13)
+        t = np.linspace(0, 1, 101)
+        true = f3d(t)
+        approx = cheb3d(t)
+        self.assertTrue(np.allclose(true, approx, **TOLS))
 
 
 def make_cheb_interpolant(function=np.sin):

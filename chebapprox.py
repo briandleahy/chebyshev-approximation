@@ -76,7 +76,6 @@ class ChebyshevApproximant(object):
 
     def _construct_coefficients(self):
         # TODO: make this faster once you test it for ND functions
-        coeffs = np.zeros(self.degree)
         N = float(self.nevalpts)
 
         lvals = np.arange(self.nevalpts).astype('float')
@@ -86,9 +85,13 @@ class ChebyshevApproximant(object):
             self.function(xpts, *self.function_args, **self.function_kwargs),
             -1)
 
+        coeffs = []
         for a in range(self.degree):
+            this_coeff = 0.0
             for b in range(self.nevalpts):
-                coeffs[a] += fpts[b] * np.cos(np.pi*a*(lvals[b]+0.5)/N)
+                this_coeff += fpts[b] * np.cos(np.pi*a*(lvals[b]+0.5)/N)
+            coeffs.append(this_coeff)
+        coeffs = np.array(coeffs)
         coeffs *= 2.0 / N
         coeffs[0] *= 0.5
         return np.array(coeffs)
