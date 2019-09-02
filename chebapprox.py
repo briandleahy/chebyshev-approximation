@@ -101,3 +101,44 @@ class ChebyshevApproximant(object):
         return np.array(coeffs)
 
 
+class PiecewiseChebyshevApproximant(object):
+    def __init__(self, function, window=(0, 1), number_windows=10, **kwargs):
+        """
+        Approximates on [window[0], window[1])
+        """
+        self.function = function
+        self.window = window
+        self.number_windows = number_windows
+        self.kwargs = kwargs
+
+        self._windows = self._setup_windows()
+        self._approximants = self._setup_approximants()
+        self._dtype = self._approximants[0]._coeffs.dtype
+
+    def _setup_windows(self):
+        endpoints = np.linspace(*self.window, self.number_windows + 1)
+        windows = [(start, stop)
+                   for start, stop in zip(endpoints[:-1], endpoints[1:])]
+        return windows
+
+    def _setup_approximants(self):
+        return [ChebyshevApproximant(
+                    self.function, window=window, **self.kwargs)
+                for window in self._windows]
+
+    def __call__(self, x):
+        x = np.asarray(x)
+        if x.max() >= self.window[1] or x.min() < self.window[0]:
+            msg = "x must be within interpolation window [{}, {})".format(
+                *self.window)
+            raise ValueError(msg)
+        result = np.zeros(x.shape, dtype=self._dtype)
+        for window, approximant in zip(self._windows, self._approximants):
+            mask = self._mask_window(x, window)
+            result[mask] = approximant(x[mask])
+        return result
+
+    @classmethod
+    def _mask_window(cls, x, window):
+        return (x >= window[0]) & (x < window[1])
+
