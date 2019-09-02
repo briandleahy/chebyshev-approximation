@@ -5,34 +5,39 @@ from numpy.polynomial.chebyshev import chebval
 class ChebyshevApproximant(object):
     def __init__(self, function, window, degree=6, nevalpts=None,
                  function_args=(), function_kwargs={}):
-        """A 1D Chebyshev approximation / interpolation for an ND function,
-        approximating (N-1)D in in the last dimension.
+        """1D Chebyshev approximation / interpolation.
+
+        For a vector function, ```function(x)[0]``` should correspond to
+        ```function(x[0])```
 
         Parameters
         ----------
-        func : callable
+        function : callable
             A function that takes scalar arguments (1D) and returns a N
             dimensional array corresponding to that scalar. Make it such that,
             for an array x, f(x)[.....,a] corresponds to f(x[a])
 
-        args : tuple [optional]
-            extra arguments to pass to func
-
         window : tuple (length 2)
             The bounds of the function over which we desire the interpolation
 
-        degree : integer
-            Degree of the Chebyshev interpolating polynomial
+        degree : integer, optional
+            Degree of the Chebyshev interpolating polynomial. Default is 6
 
-        evalpts : integer
-            Number of Chebyshev points to evaluate the function at
+        nevalpts : integer, optional
+            Number of Chebyshev points to evaluate the function at.
+            Default is ``degree + 3``.
+
+        function_args : tuple, optional
+            extra arguments to pass to func
+
+        function_kwargs : dict, optional
+            extra keyword arguments to pass to func
 
         Examples
         --------
         >>> import numpy as np
-        >>> func = lambda x: np.sin(x)
-        >>> cheb = ChebyshevInterpolation1D(func, window=(0, np.pi), degree=9,
-        ...                                 evalpts=11)
+        >>> cheb = ChebyshevApproximant(np.sin, window=(0, np.pi), degree=9,
+        ...                             nevalpts=11)
         >>> np.allclose(cheb(1.0), np.sin(1.0), atol=1e-7)
         True
         """
@@ -75,7 +80,6 @@ class ChebyshevApproximant(object):
         return rawx
 
     def _construct_coefficients(self):
-        # TODO: make this faster once you test it for ND functions
         N = float(self.nevalpts)
 
         lvals = np.arange(self.nevalpts).astype('float')
