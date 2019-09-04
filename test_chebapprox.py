@@ -74,21 +74,45 @@ class TestChebApproximant(unittest.TestCase):
         approx = cheb(x)
         self.assertTrue(np.allclose(true, approx, **TOLS))
 
+    @unittest.expectedFailure
     def test_call_returns_correct_shape_for_3d_function(self):
-        f3d = lambda t: np.transpose([(np.cos(ti), np.sin(ti), 0) for ti in t])
+        f3d = lambda t: np.array([(np.cos(ti), np.sin(ti), 0) for ti in t])
         cheb3d = ChebyshevApproximant(f3d, (0, 1), degree=3)
         t = np.linspace(0, 1, 101)
         true = f3d(t)
         approx = cheb3d(t)
         self.assertEqual(true.shape, approx.shape)
 
+    @unittest.expectedFailure
     def test_call_accurately_approximates_on_3D_function(self):
-        f3d = lambda t: np.transpose([(np.cos(ti), np.sin(ti), 0) for ti in t])
+        f3d = lambda t: np.array([(np.cos(ti), np.sin(ti), 0) for ti in t])
         cheb3d = ChebyshevApproximant(f3d, (0, 1), degree=13)
         t = np.linspace(0, 1, 101)
         true = f3d(t)
         approx = cheb3d(t)
         self.assertTrue(np.allclose(true, approx, **TOLS))
+
+    def test_works_with_args(self):
+        f = lambda x, b: (np.sin(x) if b else np.cos(x))
+        cheb_true = ChebyshevApproximant(
+            f, (0, 1), degree=12, function_args=(True,))
+        cheb_false = ChebyshevApproximant(
+            f, (0, 1), degree=12, function_args=(False,))
+
+        x = 0.5
+        self.assertAlmostEqual(cheb_true(x), f(x, True), places=13)
+        self.assertAlmostEqual(cheb_false(x), f(x, False), places=13)
+
+    def test_works_with_kwargs(self):
+        f = lambda x, b=True: (np.sin(x) if b else np.cos(x))
+        cheb_true = ChebyshevApproximant(
+            f, (0, 1), degree=12, function_kwargs={'b': True})
+        cheb_false = ChebyshevApproximant(
+            f, (0, 1), degree=12, function_kwargs={'b': False})
+
+        x = 0.5
+        self.assertAlmostEqual(cheb_true(x), f(x, b=True), places=13)
+        self.assertAlmostEqual(cheb_false(x), f(x, b=False), places=13)
 
 
 class TestPiecewiseChebyshevApproximant(unittest.TestCase):

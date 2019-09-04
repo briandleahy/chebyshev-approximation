@@ -47,8 +47,8 @@ class ChebyshevApproximant(object):
         if nevalpts is None:
             nevalpts = self.degree + 3
         self.nevalpts = nevalpts
-        self.function_args = function_args  # FIXME test
-        self.function_kwargs = function_kwargs  # FIXME test
+        self.function_args = function_args
+        self.function_kwargs = function_kwargs
 
         if self.nevalpts < self.degree:
             raise ValueError("nevalpts must be > degree")
@@ -79,15 +79,13 @@ class ChebyshevApproximant(object):
                 self.window[0])
         return rawx
 
-    def _construct_coefficients(self):
+    def _construct_coefficients(self):  # 1640 us
         N = float(self.nevalpts)
 
-        lvals = np.arange(self.nevalpts).astype('float')
+        lvals = np.arange(self.nevalpts).astype('float')  # 1.6 us
         xpts = self._transform_cheb_to_raw_coordinates(
-            np.cos(np.pi * (lvals + 0.5) / N))
-        fpts = np.rollaxis(
-            self.function(xpts, *self.function_args, **self.function_kwargs),
-            -1)
+            np.cos(np.pi * (lvals + 0.5) / N))  # 10.5 us
+        fpts = self.function(xpts, *self.function_args, **self.function_kwargs)
 
         coeffs = []
         for a in range(self.degree):
