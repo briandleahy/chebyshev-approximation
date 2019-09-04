@@ -96,23 +96,23 @@ class ChebyshevApproximant(object):
 
 
 class PiecewiseChebyshevApproximant(object):
-    def __init__(self, function, window=(0, 1), number_windows=10, **kwargs):
+    def __init__(self, function, window_breakpoints, **kwargs):
         """
-        Approximates on [window[0], window[1])
+        Approximates on [window_breakpoints[0], window_breakpoints[1])
         """
         self.function = function
-        self.window = window
-        self.number_windows = number_windows
+        self.window_breakpoints = window_breakpoints
         self.kwargs = kwargs
 
+        self._domain = (window_breakpoints[0], window_breakpoints[-1])
         self._windows = self._setup_windows()
         self._approximants = self._setup_approximants()
         self._dtype = self._approximants[0]._coeffs.dtype
 
     def _setup_windows(self):
-        endpoints = np.linspace(*self.window, self.number_windows + 1)
-        windows = [(start, stop)
-                   for start, stop in zip(endpoints[:-1], endpoints[1:])]
+        windows = [
+            (start, stop) for start, stop in
+            zip(self.window_breakpoints[:-1], self.window_breakpoints[1:])]
         return windows
 
     def _setup_approximants(self):
@@ -122,9 +122,9 @@ class PiecewiseChebyshevApproximant(object):
 
     def __call__(self, x):
         x = np.asarray(x)
-        if x.max() >= self.window[1] or x.min() < self.window[0]:
+        if x.max() >= self._domain[1] or x.min() < self._domain[0]:
             msg = "x must be within interpolation window [{}, {})".format(
-                *self.window)
+                *self._domain)
             raise ValueError(msg)
         result = np.zeros(x.shape, dtype=self._dtype)
         for window, approximant in zip(self._windows, self._approximants):

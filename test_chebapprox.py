@@ -126,7 +126,7 @@ class TestPiecewiseChebyshevApproximant(unittest.TestCase):
     def test_setup_windows_splits_into_n_windows(self):
         nwindows = 5
         piecewisecheb = PiecewiseChebyshevApproximant(
-            np.sin, window=(0, 1), number_windows=nwindows)
+            np.sin, window_breakpoints=np.linspace(0, 1, nwindows + 1))
         windows = piecewisecheb._setup_windows()
         self.assertEqual(len(windows), nwindows)
 
@@ -134,7 +134,7 @@ class TestPiecewiseChebyshevApproximant(unittest.TestCase):
         nwindows = 5
         window = (0, 1)
         piecewisecheb = PiecewiseChebyshevApproximant(
-            np.sin, window=(0, 1), number_windows=nwindows)
+            np.sin, window_breakpoints=np.linspace(*window, nwindows + 1))
         windows = piecewisecheb._setup_windows()
 
         np.random.seed(72)
@@ -144,46 +144,44 @@ class TestPiecewiseChebyshevApproximant(unittest.TestCase):
         self.assertTrue(np.all(number_of_masks_contained == 1))
 
     def test_setup_approximants_generates_approximants(self):
-        nwindows = 5
         piecewisecheb = PiecewiseChebyshevApproximant(
-            np.sin, window=(0, 1), number_windows=nwindows)
+            np.sin, window_breakpoints=np.linspace(0, 1, 6))
         approximants = piecewisecheb._setup_approximants()
         for approximant in approximants:
             self.assertTrue(isinstance(approximant, ChebyshevApproximant))
 
     def test_dtype_on_float(self):
         piecewisecheb = PiecewiseChebyshevApproximant(
-            np.sin, window=(0, 1), number_windows=5)
+            np.sin, window_breakpoints=np.linspace(0, 1, 6))
         self.assertEqual(piecewisecheb._dtype.name, 'float64')
 
     def test_dtype_on_complex(self):
-        nwindows = 5
         piecewisecheb = PiecewiseChebyshevApproximant(
-            lambda x: np.exp(1j * x), window=(0, 1), number_windows=nwindows)
+            lambda x: np.exp(1j * x), window_breakpoints=np.linspace(0, 1, 6))
         self.assertEqual(piecewisecheb._dtype.name, 'complex128')
 
     def test_call_raises_error_when_x_less_than_window(self):
         window = (0, 10)
         piecewisecheb = PiecewiseChebyshevApproximant(
-            np.sin, window=window, number_windows=5)
+            np.sin, window_breakpoints=np.linspace(*window, 6))
         self.assertRaises(ValueError, piecewisecheb, window[0] - 1)
 
     def test_call_raises_error_when_x_greater_than_window(self):
         window = (0, 10)
         piecewisecheb = PiecewiseChebyshevApproximant(
-            np.sin, window=window, number_windows=5)
+            np.sin, window_breakpoints=np.linspace(*window, 6))
         self.assertRaises(ValueError, piecewisecheb, window[1] + 1)
 
     def test_call_raises_error_when_x_equal_to_max_window(self):
         window = (0, 10)
         piecewisecheb = PiecewiseChebyshevApproximant(
-            np.sin, window=window, number_windows=5)
+            np.sin, window_breakpoints=np.linspace(*window, 6))
         self.assertRaises(ValueError, piecewisecheb, window[1])
 
     def test_call_returns_correct_shape(self):
         window = (0, 20)
         piecewisecheb = PiecewiseChebyshevApproximant(
-            np.sin, window=window, number_windows=5)
+            np.sin, window_breakpoints=np.linspace(*window, 6))
         x = np.linspace(window[0], window[1] - 0.1, 101)
         true = np.sin(x)
         approx = piecewisecheb(x)
@@ -192,7 +190,7 @@ class TestPiecewiseChebyshevApproximant(unittest.TestCase):
     def test_call_accurately_approximates(self):
         window = (0, 20)
         piecewisecheb = PiecewiseChebyshevApproximant(
-            np.sin, window=window, number_windows=20, degree=12)
+            np.sin, window_breakpoints=np.linspace(*window, 21), degree=12)
         x = np.linspace(window[0], window[1] - 0.1, 101)
         true = np.sin(x)
         approx = piecewisecheb(x)
