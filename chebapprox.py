@@ -83,18 +83,16 @@ class ChebyshevApproximant(object):
         N = float(self.nevalpts)
 
         lvals = np.arange(self.nevalpts).astype('float')  # 1.6 us
-        xpts = self._transform_cheb_to_raw_coordinates(
+        cheb_nodes = self._transform_cheb_to_raw_coordinates(
             np.cos(np.pi * (lvals + 0.5) / N))  # 10.5 us
-        fpts = self.function(xpts, *self.function_args, **self.function_kwargs)
+        f_at_cheb_nodes = self.function(
+            cheb_nodes, *self.function_args, **self.function_kwargs)
 
-        coeffs = []
-        for a in range(self.degree):
-            this_coeff = 0.0
-            for b in range(self.nevalpts):
-                this_coeff += fpts[b] * np.cos(np.pi*a*(lvals[b]+0.5)/N)
-            coeffs.append(this_coeff)
-        coeffs = np.array(coeffs)
-        coeffs *= 2.0 / N
+        degree = np.arange(self.degree).reshape(-1, 1)
+        coeffs = np.sum(
+            f_at_cheb_nodes.reshape(1, -1) *
+            np.cos(np.pi * degree * (lvals.reshape(1, -1) + 0.5) / N),
+            axis=1) * 2.0 / N
         coeffs[0] *= 0.5
         return np.array(coeffs)
 
