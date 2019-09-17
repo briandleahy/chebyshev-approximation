@@ -6,6 +6,7 @@ from numpy.polynomial.chebyshev import chebval
 from chebapprox import ChebyshevApproximant, PiecewiseChebyshevApproximant
 
 
+WIGGLYTOLS = {'atol': 3e-13, 'rtol': 3e-13}
 TOLS = {'atol': 1e-14, 'rtol': 1e-14}
 
 
@@ -73,6 +74,15 @@ class TestChebApproximant(unittest.TestCase):
         true = np.sin(x)
         approx = cheb(x)
         self.assertTrue(np.allclose(true, approx, **TOLS))
+
+    def test_call_accurately_approximates_with_many_wiggles(self):
+        window = (0, 50)
+        cheb = ChebyshevApproximant(
+            function=np.sin, window=window, degree=500)
+        x = np.linspace(*window, 101)
+        true = np.sin(x)
+        approx = cheb(x)
+        self.assertTrue(np.allclose(true, approx, **WIGGLYTOLS))
 
     @unittest.expectedFailure
     def test_call_returns_correct_shape_for_3d_function(self):
